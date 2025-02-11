@@ -1,0 +1,61 @@
+﻿@page "/kpi-chart"
+@using System.Net.Http.Json
+@inject HttpClient Http
+@using Blazorise.Charts
+@using Blazorise.Bootstrap
+
+<div class="container mt-5">
+    <h3>KPI Summary Visualization</h3>
+    <BarChart @ref="barChart">
+        <BarChartOptions Responsive="true" MaintainAspectRatio="false" />
+        <BarChartDataset Data="@data" Label="Average KPI Score" BackgroundColor="rgba(75, 192, 192, 0.2)" BorderColor="rgba(75, 192, 192, 1)" BorderWidth="1" />
+        <ChartOptions Options="@options" />
+    </BarChart>
+</div>
+
+@code {
+    private BarChart<double> barChart;
+    private List<double> data = new();
+    private List<string> labels = new();
+    private ChartOptions options = new ChartOptions
+    {
+        Scales = new Scale
+        {
+            YAxes = new List<Axis>
+            {
+                new Axis
+                {
+                    Ticks = new AxisTicks
+                    {
+                        BeginAtZero = true
+                    }
+                }
+            }
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var kpiSummaries = await Http.GetFromJsonAsync<List<KpiSummary>>("https://localhost:5001/api/kpi-summary");
+            if (kpiSummaries != null)
+            {
+                data = kpiSummaries.Select(s => (double)s.AverageKpiScore).ToList();
+                labels = kpiSummaries.Select(s => s.CompanyName).ToList();
+                await barChart.Update();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching data: {ex.Message}");
+        }
+    }
+
+    public class KpiSummary
+    {
+        public int CompanyId { get; set; }
+        public string CompanyName { get; set; }
+        public decimal AverageKpiScore { get; set; }
+    }
+}

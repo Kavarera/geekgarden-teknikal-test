@@ -1,0 +1,6 @@
+@GeekGardenCase3_HostAddress = http://localhost:5105
+
+GET {{GeekGardenCase3_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
